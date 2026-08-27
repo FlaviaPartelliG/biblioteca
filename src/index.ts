@@ -1,4 +1,4 @@
-import { createDb } from "./db";
+import { db, createDb } from "./db";
 
 createDb();
 
@@ -39,10 +39,35 @@ const routes: Route[] = [
   },
   {
     // rota descartável: existe só para provarmos a captura de parâmetros.
-    // some na fase 10, quando a primeira rota de verdade com parâmetro chegar.
+    // Some na fase 10, quando a primeira rota de verdade com parâmetro chegar.
     method: "GET",
     pattern: "/eco/:mensagem",
     handler: (_request, params) => Response.json({ eco: params.mensagem }),
+  },
+  {
+    method: "POST",
+    pattern: "/livros",
+    handler: async (request) => {
+      const body = (await request.json()) as {
+        isbn: string;
+        titulo: string;
+        autorId: number;
+        numeroRegistro: string;
+        dataCatalogacao: string;
+      };
+
+      const result = db.run(
+        `INSERT INTO livros (numero_registro, isbn, titulo, autor_id, data_catalogacao)
+         VALUES (?, ?, ?, ?, ?)`,
+        [body.numeroRegistro, body.isbn, body.titulo, body.autorId, body.dataCatalogacao],
+      );
+
+      const livro = db
+        .query("SELECT * FROM livros WHERE id = ?")
+        .get(result.lastInsertRowid as number);
+
+      return Response.json(livro, { status: 201 });
+    },
   },
 ];
 
