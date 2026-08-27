@@ -1,1 +1,3 @@
-console.log("Hello via Bun!");
+import { createDb } from "./db";
+
+createDb();
