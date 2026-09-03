@@ -69,6 +69,35 @@ const routes: Route[] = [
       return Response.json(livro, { status: 201 });
     },
   },
+  {
+    method: "GET",
+    pattern: "/livros/:q",
+    handler: (_request, params) => {
+      const q = params.q!;
+
+      const porIsbn = db
+        .query("SELECT * FROM livros WHERE isbn = ?")
+        .all(q);
+
+      if (porIsbn.length > 0) return Response.json(porIsbn);
+
+      const porTitulo = db
+        .query("SELECT * FROM livros WHERE titulo LIKE ?")
+        .all(`%${q}%`);
+
+      if (porTitulo.length > 0) return Response.json(porTitulo);
+
+      const porAutor = db
+        .query(
+          `SELECT livros.* FROM livros
+             JOIN autores ON autores.id = livros.autor_id
+            WHERE autores.nome LIKE ?`,
+        )
+        .all(`%${q}%`);
+
+      return Response.json(porAutor);
+    },
+  },
 ];
 
 const server = Bun.serve({
