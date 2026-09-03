@@ -60,8 +60,20 @@ const routes: Route[] = [
         .query("SELECT * FROM autores WHERE id = ?")
         .get(body.autorId);
 
+        
       if (!autor) {
         return Response.json({ error: "Autor não cadastrado" }, { status: 404 });
+      }
+
+      const livrosDoAutor = db
+        .query("SELECT COUNT(*) AS total FROM livros WHERE autor_id = ?")
+        .get(body.autorId) as { total: number };
+
+      if (livrosDoAutor.total >= 3) {
+        return Response.json(
+          { error: "O autor já tem 3 livros no acervo" },
+          { status: 409 },
+        );
       }
 
       const result = db.run(
