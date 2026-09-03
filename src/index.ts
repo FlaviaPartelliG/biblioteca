@@ -38,13 +38,6 @@ const routes: Route[] = [
     handler: () => Response.json({ message: "API da Biblioteca" }),
   },
   {
-    // rota descartável: existe só para provarmos a captura de parâmetros.
-    // Some na fase 10, quando a primeira rota de verdade com parâmetro chegar.
-    method: "GET",
-    pattern: "/eco/:mensagem",
-    handler: (_request, params) => Response.json({ eco: params.mensagem }),
-  },
-      {
     method: "POST",
     pattern: "/livros",
     handler: async (request) => {
@@ -53,14 +46,12 @@ const routes: Route[] = [
         titulo: string;
         autorId: number;
         numeroRegistro: string;
-        dataCatalogacao: string;
       };
 
       const autor = db
         .query("SELECT * FROM autores WHERE id = ?")
         .get(body.autorId);
 
-        
       if (!autor) {
         return Response.json({ error: "Autor não cadastrado" }, { status: 404 });
       }
@@ -76,10 +67,12 @@ const routes: Route[] = [
         );
       }
 
+      const hoje = new Date().toISOString().slice(0, 10);
+
       const result = db.run(
         `INSERT INTO livros (numero_registro, isbn, titulo, autor_id, data_catalogacao)
          VALUES (?, ?, ?, ?, ?)`,
-        [body.numeroRegistro, body.isbn, body.titulo, body.autorId, body.dataCatalogacao],
+        [body.numeroRegistro, body.isbn, body.titulo, body.autorId, hoje],
       );
 
       const livro = db
